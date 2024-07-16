@@ -1,3 +1,8 @@
+if(process.env.NODE_ENV != "production"){
+require('dotenv').config();
+}
+
+
 const express =require('express');
 const app = express();
 
@@ -7,20 +12,22 @@ app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
 
 app.use(express.urlencoded({extended: true}));
-app.use(express.json());
+app.use(express.json()); 
 
 const mongoose =require("mongoose");
 
-main()
-.then((res)=>{
-    console.log("connected");
-})
-.catch((err)=>{
-    console.log("error");
-});
-async function main(){
-    await mongoose.connect('mongodb://127.0.0.1:27017/Wanderlust');
-}
+
+const uri = process.env.CLOUD_URL;
+
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('Successfully connected to MongoDB Atlas!');
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB Atlas', error);
+  });
+
+
 
 const methodOverride =require("method-override");
 app.use(methodOverride("_method"));
@@ -43,14 +50,28 @@ const reviewRouter = require("./routes/reviews.js");
 const userRouter = require("./routes/user.js");
 
 const session = require("express-session");
+const MongoStore = require('connect-mongo');
 const flash =require("connect-flash");
 
 const passport =require("passport");
 const LocalStratergy =require("passport-local");
 const User = require("./models/user.js");
 
+const store=MongoStore.create({
+  mongoUrl: uri,
+  crypto: {
+    secret: process.env.SECRET,
+  },
+  touchAfter: 24*3600,
+});
+
+store.on("error",()=>{
+  console.log("Error in mongo session store",err);
+});
+
 const sessionOptions = {
-    secret: "mySecreteCode",
+    store,
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized : true,
     cookie: {
@@ -59,9 +80,11 @@ const sessionOptions = {
         httpOnly: true
     }
 };
-app.get("/",(req,res)=>{
-    res.send("working");
-});
+// app.get("/",(req,res)=>{
+//     res.send("working");
+// });
+
+
 app.use(session(sessionOptions));
 app.use(flash());  
 

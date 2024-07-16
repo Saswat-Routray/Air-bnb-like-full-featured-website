@@ -2,7 +2,8 @@ const mongoose =require("mongoose");
 const { Schema } = mongoose;
 
 const Review =require("./review.js");
-const User = require("./user.js")
+const User = require("./user.js");
+const { string } = require("joi");
 
 const listingSchema = mongoose.Schema({
     title :{
@@ -16,11 +17,8 @@ const listingSchema = mongoose.Schema({
     },
 
     image: {
-        type: String,
-        default: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGhvdGVsc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-        set: function(v) {
-            return (v === "") ? "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGhvdGVsc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60" : v;
-        }
+        url: String,
+        filename: String
     },
     price: {
         type: Number
@@ -40,6 +38,10 @@ const listingSchema = mongoose.Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User",
+    },
+    category: {
+        type: String,
+        enum:["Iconic Cities","Trending","Room","Mountains","Castles","Amazing Pools","Camping","Farms","Artict","Dome","Boats"]
     }
 }); 
 
